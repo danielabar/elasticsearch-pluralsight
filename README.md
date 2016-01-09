@@ -395,3 +395,55 @@ This feature can be disabled as shown in the example below:
  \_all can be useful for searches, but it will increase size of index to have it enabled.
 
 ### Indexes Routing
+
+Purpose of routing is to direct ES to the shard that contains the data you're looking for. Can drastically affect query performance.
+
+Example: One cluster with three nodes: Node 01, Node 02, Node 03 with three shards each. Now execute a search query:
+
+```
+GET http://localhost:9200/my_blog/post/_search?q=post_text:awesome
+```
+
+This search will run against every shard in the cluster and check against all the blog posts.
+
+Routing gives ES a hint as to which shard to search. To use it, specify in mapping, for example:
+
+```json
+{
+  "mappings": {
+    "post": {
+      "_routing": {
+        "required": false,
+        "path": "user_id"
+      },
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "store": true
+        },
+        "post_text": {
+          "type": "string"
+        },
+        "post_date": {
+          "type": "date",
+          "format": "YYYY-MM-DD"
+        }
+      }
+    }
+  }
+}
+```
+
+Setting "required" to true means queries MUST use the routing parameter when searching.
+
+"path" specifies field we want to route with, in this case, "user_id".
+
+Telling ES to route by "user_id" means ES will divide the blog posts across shards NOT arbitrarily, but by user_id. This will cause each users data to exist on one shard, thus narrowing down search parameters.
+
+A query with routing:
+
+```
+GET http://localhost:9200/my_blog/post/_search?routing=2?post_text:awesome
+```
+
+Specifying "routing=2" in query will cause it to be routed directly to the shard with all of the data owned by user_id 2.
