@@ -48,10 +48,10 @@ elasticsearch.bat
 Use Postman or CURL to verify that [http://localhost:9200](http://localhost:9200) returns a response.
 
 
-Also install Kibana, Marvel and Sense follow instructions at:
-https://www.elastic.co/downloads/kibana
-https://www.elastic.co/downloads/marvel
-https://github.com/elastic/sense/
+Also install Kibana, Marvel and Sense follow installation and configuration instructions at:
+* [Kibana](https://www.elastic.co/downloads/kibana)
+* [Marvel](https://www.elastic.co/downloads/marvel)
+* [Sense](https://github.com/elastic/sense/)
 
 Note that Kibana is a trial license, not free.
 
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS post (
 
 To create an index with this as a schema (aka mapping) in ES, POST a mapping request as follows:
 
-`(POST) http://localhost:9200/my_blog`
+`POST http://localhost:9200/my_blog`
 
 ```json
 {
@@ -222,5 +222,80 @@ POST /my_blog/post/1
   "post_date": "2015-08-26",
   "post_text": "This post should have an _id of 1",
   "user_id": 2
+}
+```
+
+## Data Types
+
+ES comes with 5 core data types out of the box:
+
+* String - most common, similar to varchar in relational database. Use it to store any collection of characters. Many options and settings for flexibility.
+* Boolean - pretty basic, either true or false
+* Number - many options and settings, can be byte (8 bit integer), short (16 bit integer) Float (single precision 32 bit floating point), double. These correspond to core types in Java.
+* Date - lots of formatting options. Stored as UTC, default format is "Date Optional Time", which means ES will append time string to value that is inserted. Can specify multiple formats at once.
+* Binary - for example images, stored as base64 string, not indexed by default.
+
+### Data Type Options
+
+Most data types support additional options and settings to tweak their usage in an index, for example, to specify that entries must have date in YYYY-MM-DD format:
+
+```json
+{
+  "mappings": {
+    "post": {
+      "properties": {
+        "user_id": {
+          "type": "integer"
+        },
+        "post_text": {
+          "type": "string"
+        },
+        "post_date": {
+          "type": "date",
+          "format": "YYYY-MM-DD"
+        }
+      }
+    }
+  }
+}
+```
+
+If a document is inserted with `post_date` not in specified format, ES will return a 400 error.
+
+### Create Index with Settings
+
+First delete previous index we created:
+
+```
+DELETE /my_blog/
+```
+
+To create an index specifying number of shards as a setting (good practice to always specify num shards in multi-node cluster):
+
+`POST http://localhost:9200/my_blog`
+
+```json
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5
+    }
+  },
+  "mappings": {
+    "post": {
+      "properties": {
+        "user_id": {
+          "type": "integer"
+        },
+        "post_text": {
+          "type": "string"
+        },
+        "post_date": {
+          "type": "date",
+          "format": "YYYY-MM-DD"
+        }
+      }
+    }
+  }
 }
 ```
