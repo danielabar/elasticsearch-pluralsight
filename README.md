@@ -299,3 +299,99 @@ To create an index specifying number of shards as a setting (good practice to al
   }
 }
 ```
+
+## Index Options
+
+Index options affect how data is stored and retrieved.
+
+### Mappings \_source
+
+By default, ES stores both original copies of data, and indexed version. This can lead a large index.
+
+This behavior can be modified for a slimmed down index. To do so, set \_source to disabled in mapping, then for each field, specify which properties to store.
+
+
+In the example below, the post_text and post_date fields will NOT be stored, only indexed. This means you can search on indexed versions of the fields, but not retrieve the original data.
+
+```json
+{
+  "mappings": {
+    "post": {
+      "_source": {
+        "enabled": false
+      },
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "store": true
+        },
+        "post_text": {
+          "type": "string"
+        },
+        "post_date": {
+          "type": "date",
+          "format": "YYYY-MM-DD"
+        }
+      }
+    }
+  }
+}
+```
+
+Now when searching for docs, none of the properties are returned. Need to specify fields:
+
+```
+GET /my_blog/post/AVInjopcIRq3mAlBy9iM?fields=user_id
+```
+
+```json
+{
+  "_index": "my_blog",
+  "_type": "post",
+  "_id": "AVInjopcIRq3mAlBy9iM",
+  "_version": 1,
+  "found": true,
+  "fields": {
+    "user_id": [
+      1
+    ]
+  }
+}
+```
+
+Only use source false in production AND where disk space is a concern.
+
+### Mappings \_all
+
+By default, ES maintains \_all field, which is concatenation of all the data in the type, "post" in this example. By leaving \_all enabled, you can search it and it will include every property value.
+
+This feature can be disabled as shown in the example below:
+
+```json
+{
+  "mappings": {
+    "post": {
+      "_all": {
+        "enabled": false
+      },
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "store": true
+        },
+        "post_text": {
+          "type": "string"
+        },
+        "post_date": {
+          "type": "date",
+          "format": "YYYY-MM-DD"
+        }
+      }
+    }
+  }
+}
+```
+
+ \_all can be useful for searches, but it will increase size of index to have it enabled.
+
+### Indexes Routing
