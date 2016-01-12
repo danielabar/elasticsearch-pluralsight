@@ -478,3 +478,17 @@ GET http://localhost:9200/eventLog/event/_search?q=event:error
 The above query will get forwarded to the "eventLog-2015-08-02" index.
 
 An alias can also be assigned to multiple indexes.
+
+## Queries and Analysis
+
+### Basic Queries
+
+aka "search lite"
+
+Simple query string search using http get, searching "post_text" field for occurrence of "awesome":
+
+```
+GET http://localhost:9200/my_blog/_search?q=post_text:awesome
+```
+
+Use this when you want to find something unique id or a simple field.
