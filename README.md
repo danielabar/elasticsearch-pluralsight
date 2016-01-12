@@ -413,7 +413,7 @@ Routing gives ES a hint as to which shard to search. To use it, specify in mappi
   "mappings": {
     "post": {
       "_routing": {
-        "required": false,
+        "required": true,
         "path": "user_id"
       },
       "properties": {
@@ -447,3 +447,34 @@ GET http://localhost:9200/my_blog/post/_search?routing=2?post_text:awesome
 ```
 
 Specifying "routing=2" in query will cause it to be routed directly to the shard with all of the data owned by user_id 2.
+
+### Indexes Aliases
+
+For example, keeping an index of application logs on a per day basis. Each index is named "eventLog-{currentDate}". For example: "eventLog-2015-08-01", "eventLog-2015-08-02", etc. Naming indexes with date makes it easy to delete them on a rolling basis.
+
+Issue with this setup is we don't know which index to target for any given query, for example, to find all error events:
+
+```
+GET http://localhost:9200/???/Event/_search?q=event:error
+```
+
+Solution is to use index _alias_, which creates a "nickname", example:
+
+```
+POST http://localhost:9200/_aliases
+{
+  "actions" : [
+    { "add" : { "index" : "eventLog-2015-08-02", "alias" : "eventLog" } }
+  ]
+}
+```
+
+Now can use the nickname in searches, for example:
+
+```
+GET http://localhost:9200/eventLog/event/_search?q=event:error
+```
+
+The above query will get forwarded to the "eventLog-2015-08-02" index.
+
+An alias can also be assigned to multiple indexes.
