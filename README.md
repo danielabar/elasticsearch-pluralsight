@@ -491,4 +491,93 @@ Simple query string search using http get, searching "post_text" field for occur
 GET http://localhost:9200/my_blog/_search?q=post_text:awesome
 ```
 
-Use this when you want to find something unique id or a simple field.
+Use this when you want to find something by unique id or a simple field.
+
+### Query DSL
+
+This is where the real power of ES is. ES accepts specially composed JSON snippets as queries.
+
+For example, to perform the same search as `GET http://localhost:9200/my_blog/_search?q=post_text:awesome`:
+
+```
+POST http://localhost:9200/my_blog/_search
+{
+  "query" : {
+    "match" : {
+      "post_text" : "awesome"
+    }
+  }
+}
+```
+
+"query" tells ES to perform a _query_ command.
+
+"match" is the _type_ of query to be performed.
+
+ES has many built-in types of query commands.
+
+Within the "match" command type, "post_text" tells ES which _field_ is being searched on and the value, example "awesome" specifies what data or _term_ to look for.
+
+"match" will search for multiple terms, for example, to find all blog posts that have the word "wonderful" or "blog":
+
+```
+"match" : {
+  "post_text" : "wonderful blog"
+}
+```
+
+Note that documents having both terms will score higher.
+
+ES will sort the results by score, from highest to lowest, leading to better relevance in search results.
+
+#### Match Phrase
+
+To find exact phrase match. Good for full text searching and more predictable results.
+For example, find documents having the exact phrase "wonderful blog":
+
+```json
+{
+  "query" : {
+    "match_phrase" : {
+      "post_text" : "wonderful blog"
+    }
+  }
+}
+```
+
+#### Query Filters
+
+To run more complex queries than the basic match phrase.
+
+Filters efficiently _reduce_ the results returned from ES with logical operators. For example:
+
+```
+{
+  "query" : {
+    "filtered" : {
+      "filter" : {
+        "range" : {
+          "post_date" : {
+            "gt" : "2015-08-01"
+          }
+        }
+      },
+      "query" : {
+        "match" : {
+          "post_text" : "wonderful blog"
+        }
+      }
+    }
+  }
+}
+```
+
+Top level "query" tells ES this is a query command.
+
+"filtered" specifies that its a filtered query.
+
+"filter" specifies a filter to be applied to results.
+
+"range" is a good filter to use on date fields, since ES can use logical operators such as greater than, less than etc. on dates.
+
+Below the filter, is the "query" from before.
