@@ -581,3 +581,24 @@ Top level "query" tells ES this is a query command.
 "range" is a good filter to use on date fields, since ES can use logical operators such as greater than, less than etc. on dates.
 
 Below the filter, is the "query" from before.
+
+Another example using "term" filter to reduce results by user_id:
+
+```json
+{
+  "query" : {
+    "filtered" : {
+      "query" : {
+        "match" : {
+          "post_text" : "blog"
+        }
+      },
+      "filter" : {
+        "term" : {
+          "user_id" : "2"
+        }
+      }
+    }
+  }
+}
+```
