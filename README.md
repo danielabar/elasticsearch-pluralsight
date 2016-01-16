@@ -484,8 +484,8 @@ An alias can also be assigned to multiple indexes.
 ### Basic Queries
 
 aka "search lite"
-
 Simple query string search using http get, searching "post_text" field for occurrence of "awesome":
+
 
 ```
 GET http://localhost:9200/my_blog/_search?q=post_text:awesome
@@ -598,6 +598,25 @@ Another example using "term" filter to reduce results by user_id:
           "user_id" : "2"
         }
       }
+    }
+  }
+}
+```
+
+### Highlighting
+
+Use "highlight" command, for example, to highlight matched words in the "post_text" field:
+
+```json
+{
+  "query": {
+    "match": {
+      "post_text": "blog"
+    }
+  },
+  "highlight": {
+    "fields": {
+      "post_text": {}
     }
   }
 }
