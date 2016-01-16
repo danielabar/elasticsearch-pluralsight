@@ -621,3 +621,79 @@ Use "highlight" command, for example, to highlight matched words in the "post_te
   }
 }
 ```
+
+## Analytics
+
+ElasticSearch comes with a lot of built in analytic functions to make performing calculations on data fast and easy. These are called _aggregations_.
+
+In SQL terms, aggregations are kind of like "group by" but more powerful.
+
+Some features include hierarchical rollups, min/max, percentiles, histograms, distance between geographical points.
+
+General structure:
+
+```json
+{
+  "query": {
+    "match": {
+      "post_text": "blog"
+    }
+  },
+  "aggs": {
+    "NAME": {
+      "AGG_TYPE": {}
+    }
+  }
+}
+```
+
+"aggs" is ElasticSearch keyword specifying the aggregation feature.
+
+"NAME" can be any value you specify, for example "all_words".
+
+"AGG_TYPE" is one of the aggregation types, for example "terms".
+
+For example, find all docs that have the word "blog" in "post_text" field, and then for these results, return how often each of the terms occur.
+
+```json
+{
+  "query": {
+    "match": {
+      "post_text": "blog"
+    }
+  },
+  "aggs": {
+    "all_words": {
+      "terms": {
+        "field": "post_text",
+        "size": 10
+      }
+    }
+  }
+}
+```
+
+"avg" is another aggregation type, for example, if the data contains a numeric field such as "post_word_count", and want to know, for the docs that match a given query, what's the average word count:
+
+```json
+{
+  "query": {
+    "match": {
+      "post_text": "blog"
+    }
+  },
+  "aggs": {
+    "all_words": {
+      "terms": {
+        "field": "post_text",
+        "size": 10
+      }
+    },
+    "avg_word_count" : {
+      "avg": {
+        "field": "post_word_count"
+      }
+    }
+  }
+}
+```
