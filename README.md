@@ -1,6 +1,6 @@
-# Getting Started with ElasticSearch
+# Getting Started with Elasticsearch
 
-> My course notes from learning ElasticSearch with [Pluralsight Course](https://app.pluralsight.com/library/courses/elasticsearch-for-dotnet-developers/table-of-contents)
+> My course notes from learning Elasticsearch with [Pluralsight Course](https://app.pluralsight.com/library/courses/elasticsearch-for-dotnet-developers/table-of-contents)
 
 ## Concepts
 
@@ -624,7 +624,7 @@ Use "highlight" command, for example, to highlight matched words in the "post_te
 
 ## Analytics
 
-ElasticSearch comes with a lot of built in analytic functions to make performing calculations on data fast and easy. These are called _aggregations_.
+Elasticsearch comes with a lot of built in analytic functions to make performing calculations on data fast and easy. These are called _aggregations_.
 
 In SQL terms, aggregations are kind of like "group by" but more powerful.
 
@@ -647,7 +647,7 @@ General structure:
 }
 ```
 
-"aggs" is ElasticSearch keyword specifying the aggregation feature.
+"aggs" is Elasticsearch keyword specifying the aggregation feature.
 
 "NAME" can be any value you specify, for example "all_words".
 
