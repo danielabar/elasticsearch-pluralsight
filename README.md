@@ -697,3 +697,188 @@ For example, find all docs that have the word "blog" in "post_text" field, and t
   }
 }
 ```
+
+## Index
+
+Consider the following sentences:
+
+* i can not wait to drive my new car (Document 1)
+* my new car looks great today (Document 2)
+
+Elasticsearch will index each continguous block of letters and numbers as a _term_.
+These terms are maintained in an _inverted index_, which stores which documents each term belongs in.
+
+![Image of Inverted Index](images/inverted-index.JPG)
+
+In an inverted index, the terms are considered the _primary data_. This makes searching by these terms very fast.
+
+## Analysis
+
+When documents with sentences are inserted into Elasticsearch, the sentences are broken down into their constituent parts, called _terms_.
+
+The work of breaking down strings of text into terms or _tokens_ is performed by an _analyzer_, by a process referred to as _tokenization_.
+
+Analyzer performs three main jobs in tokenizing:
+
+1. Apply character filter (first pass at cleaning up string): remove html, convert numerals to words such as "9" to "nine".
+
+1. Tokenize by whitespace, period, comma etc.
+
+1. Token filter to remove stop words like "and", "the", etc.
+
+### Analyzers
+
+Elasticsearch comes with built in analyzers, and custom ones can also be created.
+
+__standard__:  Default. General purpose analyzer for multiple languages. Breaks up text strings by natural word boundaries, removes punctuation and lower-cases terms.
+
+__whitespace__: Breaks up text by whitespace only. More useful for strings like computer code or logs.
+
+__simple__: Breaks up strings by anything that isn't a number, lowercases terms.
+
+#### Standard: Example
+
+![Image of Standard Analyzer](images/standard-analyzer.JPG)
+
+* Dropped hyphenation & parens
+* Converted to lower case
+* Separated by natural word endings
+
+These terms are what's compared against when running term queries. So searching for "(string)" would not yield any matches because parens were stripped out.
+
+#### Analysis: API
+
+Elasticsearch comes with an API for testing the analysis of strings, which effectively, _explains_ the analysis.
+
+```
+POST http://localhost:9200/_analyze?analyzer=standard
+"string to be searched"
+```
+
+Use Postman or other REST client to send raw text in POST body because Sense does not accept a request without brackets.
+
+For example:
+
+```
+POST http://localhost:9200/_analyze?analyzer=standard
+Convert the title-case text using the ToLower(String) command.
+```
+
+Returns:
+
+```json
+{
+    "tokens": [
+        {
+            "token": "convert",
+            "start_offset": 0,
+            "end_offset": 7,
+            "type": "<ALPHANUM>",
+            "position": 0
+        },
+        {
+            "token": "the",
+            "start_offset": 8,
+            "end_offset": 11,
+            "type": "<ALPHANUM>",
+            "position": 1
+        },
+        {
+            "token": "title",
+            "start_offset": 12,
+            "end_offset": 17,
+            "type": "<ALPHANUM>",
+            "position": 2
+        },
+        {
+            "token": "case",
+            "start_offset": 18,
+            "end_offset": 22,
+            "type": "<ALPHANUM>",
+            "position": 3
+        },
+        {
+            "token": "text",
+            "start_offset": 23,
+            "end_offset": 27,
+            "type": "<ALPHANUM>",
+            "position": 4
+        },
+        {
+            "token": "using",
+            "start_offset": 28,
+            "end_offset": 33,
+            "type": "<ALPHANUM>",
+            "position": 5
+        },
+        {
+            "token": "the",
+            "start_offset": 34,
+            "end_offset": 37,
+            "type": "<ALPHANUM>",
+            "position": 6
+        },
+        {
+            "token": "tolower",
+            "start_offset": 38,
+            "end_offset": 45,
+            "type": "<ALPHANUM>",
+            "position": 7
+        },
+        {
+            "token": "string",
+            "start_offset": 46,
+            "end_offset": 52,
+            "type": "<ALPHANUM>",
+            "position": 8
+        },
+        {
+            "token": "command",
+            "start_offset": 54,
+            "end_offset": 61,
+            "type": "<ALPHANUM>",
+            "position": 9
+        }
+    ]
+}
+```
+
+#### Analysis: Setting
+
+When to choose analyzer? Most commonly, specify in "mapping" settings of index, for example:
+
+`POST http://localhost:9200/my_blog`
+
+```json
+{
+  "mappings": {
+    "post": {
+      "properties": {
+        "user_id": {
+          "type": "integer"
+        },
+        "post_text": {
+          "type": "string",
+          "analyzer": "standard"
+        },
+        "post_date": {
+          "type": "date"
+        }
+      }
+    }
+  }
+}
+```
+
+Now any blog posts inserted, will have their "post_text" field tokenized according to the standard analyzer.
+
+If you don't want a field to be analyzed, i.e. inserted exactly as is, specify "not_analyzed" in mapping, for example:
+
+```json
+"user_id": {
+   "type": "integer",
+   "index": "not_analyzed"
+ }
+```
+
+Do this on fields for which you need predictable results such as user id, state fields like "status", etc.
